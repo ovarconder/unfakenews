@@ -1,0 +1,79 @@
+UnfakeNews/
+│
+├── 📁 app/                          # Next.js App Router
+│   ├── 📁 [lang]/                   # Internationalized routes
+│   │   ├── 📄 layout.tsx            # Main layout with navbar/footer
+│   │   ├── 📄 page.tsx              # Home page
+│   │   ├── 📁 article/
+│   │   │   └── 📁 [id]/
+│   │   │       └── 📄 page.tsx      # Article detail page
+│   │   ├── 📁 auth/
+│   │   │   └── 📁 signin/
+│   │   │       └── 📄 page.tsx      # Sign in page
+│   │   └── 📁 category/
+│   │       └── 📁 [slug]/
+│   │           └── 📄 page.tsx      # Category pages
+│   │
+│   ├── 📁 admin/                    # Admin dashboard
+│   │   ├── 📄 layout.tsx            # Admin layout with sidebar
+│   │   ├── 📄 page.tsx              # Dashboard overview
+│   │   ├── 📁 posts/
+│   │   │   └── 📄 page.tsx          # Posts management
+│   │   ├── 📁 media/
+│   │   │   └── 📄 page.tsx          # Media library
+│   │   ├── 📁 users/
+│   │   │   └── 📄 page.tsx          # User management
+│   │   └── 📁 settings/
+│   │       └── 📄 page.tsx          # Settings page
+│   │
+│   ├── 📁 api/                      # API routes
+│   │   └── 📁 auth/
+│   │       └── 📁 [...nextauth]/
+│   │           └── 📄 route.ts      # NextAuth API handler
+│   │
+│   ├── 📄 globals.css               # Global styles & CSS variables
+│   ├── 📄 layout.tsx                # Root layout
+│   └── 📄 page.tsx                  # Root redirect
+│
+├── 📁 components/                   # React components
+│   ├── 📁 ui/                       # shadcn/ui components
+│   │   ├── 📄 button.tsx            # Button component
+│   │   ├── 📄 card.tsx              # Card components
+│   │   └── 📄 input.tsx             # Input component
+│   ├── 📁 admin/
+│   │   └── 📄 sidebar.tsx           # Admin sidebar
+│   ├── 📄 article-card.tsx          # Article display card
+│   ├── 📄 footer.tsx                # Site footer
+│   └── 📄 navbar.tsx                # Main navigation
+│
+├── 📁 lib/                          # Utilities & configuration
+│   ├── 📄 auth.ts                   # NextAuth configuration
+│   ├── 📄 i18n.ts                   # Internationalization setup
+│   ├── 📄 translations.ts           # Translation strings
+│   └── 📄 utils.ts                  # Utility functions
+│
+├── 📁 types/                        # TypeScript type definitions
+│   └── 📄 next-auth.d.ts            # NextAuth type extensions
+│
+├── 📁 public/                       # Static assets (ready for use)
+│
+├── 📄 .eslintrc.json                # ESLint configuration
+├── 📄 .gitignore                    # Git ignore rules
+├── 📄 .npmrc                        # npm configuration
+├── 📄 components.json               # shadcn/ui config
+├── 📄 middleware.ts                 # Next.js middleware (i18n routing)
+├── 📄 next.config.ts                # Next.js configuration
+├── 📄 package.json                  # Project dependencies
+├── 📄 postcss.config.mjs            # PostCSS configuration
+├── 📄 tailwind.config.ts            # Tailwind CSS configuration
+├── 📄 tsconfig.json                 # TypeScript configuration
+├── 📄 vercel.json                   # Vercel deployment config
+│
+├── 📄 README.md                     # Complete documentation
+├── 📄 START.md                      # Quick start guide
+├── 📄 FEATURES.md                   # Feature documentation
+├── 📄 DEPLOYMENT.md                 # Deployment guide
+├── 📄 PROJECT_SUMMARY.md            # Project overview
+└── 📄 DIRECTORY_STRUCTURE.txt       # This file
+
+TOTAL: 40+ files created
