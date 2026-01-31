@@ -5,10 +5,7 @@ import { locales, defaultLocale } from "@/lib/i18n";
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Debug logging (will appear in Vercel logs)
-  console.log('[Middleware] Path:', pathname);
-
-  // Skip middleware for API routes and auth pages
+  // Skip middleware for API routes and auth pages - CRITICAL!
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/auth') ||
@@ -16,11 +13,8 @@ export function middleware(request: NextRequest) {
     pathname === '/favicon.ico' ||
     /\.\w+$/.test(pathname) // files with extensions
   ) {
-    console.log('[Middleware] Skipping:', pathname);
     return NextResponse.next();
   }
-
-  console.log('[Middleware] Processing:', pathname);
 
   // Check if pathname already has a locale
   const pathnameHasLocale = locales.some(
@@ -59,8 +53,12 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths  
+     * Match all request paths except:
+     * - api (ALL API routes - very important!)
+     * - _next/static (static files)
+     * - _next/image (image optimization)
+     * - favicon.ico
      */
-    '/:path*',
+    '/((?!api/|_next/static|_next/image|favicon.ico).*)',
   ],
 };
