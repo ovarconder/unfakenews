@@ -114,7 +114,7 @@ export function LanguageSwitcher({ currentLang, currentSlug, originalPostId }: L
   );
 }
 
-// Compact version for navbar - แสดงทุกภาษา
+// Compact version for navbar
 export function LanguageSwitcherCompact({ currentLang }: { currentLang: Locale }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -128,9 +128,13 @@ export function LanguageSwitcherCompact({ currentLang }: { currentLang: Locale }
     // Save language preference
     saveLanguagePreference(newLang);
     
+    // Reconstruct path with new language
     const segments = pathname.split("/").filter(Boolean);
     segments[0] = newLang;
-    router.push(`/${segments.join("/")}`);
+    const newPath = `/${segments.join("/")}`;
+    
+    console.log('[Language Switch] From:', pathname, 'To:', newPath);
+    router.push(newPath);
     setIsOpen(false);
   };
 

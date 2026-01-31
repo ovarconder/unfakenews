@@ -136,27 +136,86 @@ export async function getAllPosts(lang: Locale, limit?: number) {
             image: true,
           },
         },
-        translations: {
-          where: { lang },
-        },
+        translations: true, // Get ALL translations, not just requested lang
       },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
 
-    return posts.map((post) => ({
-      id: post.id,
-      slug: post.slug,
-      category: post.category,
-      image: post.image,
-      published: post.published,
-      featured: post.featured,
-      views: post.views,
-      author: post.author,
-      translation: post.translations[0] || null,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    }));
+    // Map posts and provide translation fallback
+    const mappedPosts = await Promise.all(
+      posts.map(async (post) => {
+        // Try to find translation for requested language
+        let translation = post.translations.find((t) => t.lang === lang);
+
+        // If not found, try to find any available translation and auto-translate
+        if (!translation) {
+          const anyTranslation = post.translations[0];
+          
+          if (anyTranslation) {
+            // Auto-translate title and excerpt only (not full content yet)
+            const translationInput = {
+              title: anyTranslation.title,
+              content: anyTranslation.excerpt, // Use excerpt as content for quick translation
+              excerpt: anyTranslation.excerpt,
+            };
+
+            try {
+              const geminiResult = await translatePost(translationInput, lang);
+              const readTime = await calculateReadTime(geminiResult.content);
+
+              // Save the new translation
+              translation = await prisma.postTranslation.create({
+                data: {
+                  postId: post.id,
+                  lang,
+                  title: geminiResult.title,
+                  content: anyTranslation.content, // Keep original content for now
+                  excerpt: geminiResult.excerpt,
+                  seoTitle: geminiResult.seoTitle,
+                  seoDesc: geminiResult.seoDesc,
+                  readTime,
+                },
+              });
+            } catch (error) {
+              console.error(`Error auto-translating post ${post.id} to ${lang}:`, error);
+              // Fallback: use original translation
+              translation = anyTranslation;
+            }
+          }
+        }
+
+        // Skip posts with no translation at all
+        if (!translation) {
+          return null;
+        }
+
+        return {
+          id: post.id,
+          slug: post.slug,
+          category: post.category,
+          image: post.image,
+          published: post.published,
+          featured: post.featured,
+          views: post.views,
+          author: post.author,
+          translation: {
+            title: translation.title,
+            content: translation.content,
+            excerpt: translation.excerpt,
+            seoTitle: translation.seoTitle,
+            seoDesc: translation.seoDesc,
+            readTime: translation.readTime,
+            lang: translation.lang,
+          },
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+        };
+      })
+    );
+
+    // Filter out null posts
+    return mappedPosts.filter((post) => post !== null) as any[];
   } catch (error) {
     console.error("Error fetching posts:", error);
     return [];
@@ -176,27 +235,78 @@ export async function getFeaturedPosts(lang: Locale, limit: number = 6) {
             image: true,
           },
         },
-        translations: {
-          where: { lang },
-        },
+        translations: true, // Get ALL translations
       },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
 
-    return posts.map((post) => ({
-      id: post.id,
-      slug: post.slug,
-      category: post.category,
-      image: post.image,
-      published: post.published,
-      featured: post.featured,
-      views: post.views,
-      author: post.author,
-      translation: post.translations[0] || null,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    }));
+    const mappedPosts = await Promise.all(
+      posts.map(async (post) => {
+        let translation = post.translations.find((t) => t.lang === lang);
+
+        if (!translation) {
+          const anyTranslation = post.translations[0];
+          
+          if (anyTranslation) {
+            const translationInput = {
+              title: anyTranslation.title,
+              content: anyTranslation.excerpt,
+              excerpt: anyTranslation.excerpt,
+            };
+
+            try {
+              const geminiResult = await translatePost(translationInput, lang);
+              const readTime = await calculateReadTime(geminiResult.content);
+
+              translation = await prisma.postTranslation.create({
+                data: {
+                  postId: post.id,
+                  lang,
+                  title: geminiResult.title,
+                  content: anyTranslation.content,
+                  excerpt: geminiResult.excerpt,
+                  seoTitle: geminiResult.seoTitle,
+                  seoDesc: geminiResult.seoDesc,
+                  readTime,
+                },
+              });
+            } catch (error) {
+              console.error(`Error auto-translating featured post ${post.id}:`, error);
+              translation = anyTranslation;
+            }
+          }
+        }
+
+        if (!translation) {
+          return null;
+        }
+
+        return {
+          id: post.id,
+          slug: post.slug,
+          category: post.category,
+          image: post.image,
+          published: post.published,
+          featured: post.featured,
+          views: post.views,
+          author: post.author,
+          translation: {
+            title: translation.title,
+            content: translation.content,
+            excerpt: translation.excerpt,
+            seoTitle: translation.seoTitle,
+            seoDesc: translation.seoDesc,
+            readTime: translation.readTime,
+            lang: translation.lang,
+          },
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+        };
+      })
+    );
+
+    return mappedPosts.filter((post) => post !== null) as any[];
   } catch (error) {
     console.error("Error fetching featured posts:", error);
     return [];
@@ -220,27 +330,78 @@ export async function getPostsByCategory(
             image: true,
           },
         },
-        translations: {
-          where: { lang },
-        },
+        translations: true, // Get ALL translations
       },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
 
-    return posts.map((post) => ({
-      id: post.id,
-      slug: post.slug,
-      category: post.category,
-      image: post.image,
-      published: post.published,
-      featured: post.featured,
-      views: post.views,
-      author: post.author,
-      translation: post.translations[0] || null,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-    }));
+    const mappedPosts = await Promise.all(
+      posts.map(async (post) => {
+        let translation = post.translations.find((t) => t.lang === lang);
+
+        if (!translation) {
+          const anyTranslation = post.translations[0];
+          
+          if (anyTranslation) {
+            const translationInput = {
+              title: anyTranslation.title,
+              content: anyTranslation.excerpt,
+              excerpt: anyTranslation.excerpt,
+            };
+
+            try {
+              const geminiResult = await translatePost(translationInput, lang);
+              const readTime = await calculateReadTime(geminiResult.content);
+
+              translation = await prisma.postTranslation.create({
+                data: {
+                  postId: post.id,
+                  lang,
+                  title: geminiResult.title,
+                  content: anyTranslation.content,
+                  excerpt: geminiResult.excerpt,
+                  seoTitle: geminiResult.seoTitle,
+                  seoDesc: geminiResult.seoDesc,
+                  readTime,
+                },
+              });
+            } catch (error) {
+              console.error(`Error auto-translating category post ${post.id}:`, error);
+              translation = anyTranslation;
+            }
+          }
+        }
+
+        if (!translation) {
+          return null;
+        }
+
+        return {
+          id: post.id,
+          slug: post.slug,
+          category: post.category,
+          image: post.image,
+          published: post.published,
+          featured: post.featured,
+          views: post.views,
+          author: post.author,
+          translation: {
+            title: translation.title,
+            content: translation.content,
+            excerpt: translation.excerpt,
+            seoTitle: translation.seoTitle,
+            seoDesc: translation.seoDesc,
+            readTime: translation.readTime,
+            lang: translation.lang,
+          },
+          createdAt: post.createdAt,
+          updatedAt: post.updatedAt,
+        };
+      })
+    );
+
+    return mappedPosts.filter((post) => post !== null) as any[];
   } catch (error) {
     console.error("Error fetching posts by category:", error);
     return [];
