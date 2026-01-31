@@ -5,11 +5,6 @@ import { locales, defaultLocale } from "@/lib/i18n";
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip NextAuth API routes and auth pages - let them pass through
-  if (pathname.startsWith("/api/auth") || pathname.startsWith("/auth")) {
-    return NextResponse.next();
-  }
-
   // Check if pathname already has a locale
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
@@ -46,7 +41,14 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals, static files, and auth routes
-    "/((?!api|_next/static|_next/image|favicon.ico|auth|.*\\..*).*)",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - auth (auth pages)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!api|auth|_next/static|_next/image|favicon.ico).*)",
   ],
 };
