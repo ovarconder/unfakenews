@@ -55,7 +55,7 @@ export function ArticleCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Link href={`/${locale}/posts/${article.slug}`} className="group">
+        <Link href={`/${locale}/${article.slug}`} className="group">
           <div className="relative h-[500px] overflow-hidden rounded-lg">
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
             <img
@@ -98,7 +98,7 @@ export function ArticleCard({
         transition={{ duration: 0.5 }}
       >
         <Link
-          href={`/${locale}/posts/${article.slug}`}
+          href={`/${locale}/${article.slug}`}
           className="group flex gap-4 items-start"
         >
           <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded">
@@ -128,7 +128,7 @@ export function ArticleCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Link href={`/${locale}/posts/${article.slug}`} className="group">
+      <Link href={`/${locale}/${article.slug}`} className="group">
         <div className="overflow-hidden rounded-lg mb-4">
           <img
             src={article.image}

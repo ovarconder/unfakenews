@@ -56,7 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Post pages for all languages
     const postPages: MetadataRoute.Sitemap = posts.flatMap((post) =>
       locales.map((lang) => ({
-        url: `${baseUrl}/${lang}/posts/${post.slug}`,
+        url: `${baseUrl}/${lang}/${post.slug}`,
         lastModified: post.updatedAt,
         changeFrequency: "weekly" as const,
         priority: 0.9,
@@ -64,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           languages: Object.fromEntries(
             locales.map((locale) => [
               locale,
-              `${baseUrl}/${locale}/posts/${post.slug}`,
+              `${baseUrl}/${locale}/${post.slug}`,
             ])
           ),
         },

@@ -22,8 +22,11 @@ export function LanguageSwitcher({ currentLang, currentSlug }: LanguageSwitcherP
     // Save language preference
     saveLanguagePreference(newLang);
     
+    // Track language change
+    gaEvent.changeLanguage(currentLang, newLang);
+    
     if (currentSlug) {
-      router.push(`/${newLang}/posts/${currentSlug}`);
+      router.push(`/${newLang}/${currentSlug}`);
     } else {
       // For other pages, reconstruct the path with new language
       const segments = pathname.split("/").filter(Boolean);

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPostBySlug } from "@/lib/db/posts";
-import { getLocale, locales, primaryLanguages } from "@/lib/i18n";
+import { getLocale, locales } from "@/lib/i18n";
 import { PostContent } from "./post-content";
 
 // Enable ISR (Incremental Static Regeneration) for SEO
@@ -33,7 +33,7 @@ export async function generateMetadata({
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const currentUrl = `${baseUrl}/${locale}/posts/${slug}`;
+    const currentUrl = `${baseUrl}/${locale}/${slug}`;
 
     // Ensure image URL is absolute
     const imageUrl = post.image.startsWith("http") 
@@ -43,9 +43,9 @@ export async function generateMetadata({
     // Generate hreflang tags for all supported languages
     const languages: Record<string, string> = {};
     locales.forEach((lang) => {
-      languages[lang] = `${baseUrl}/${lang}/posts/${slug}`;
+      languages[lang] = `${baseUrl}/${lang}/${slug}`;
     });
-    languages["x-default"] = `${baseUrl}/en/posts/${slug}`;
+    languages["x-default"] = `${baseUrl}/en/${slug}`;
 
     return {
       title: post.translation.seoTitle,
