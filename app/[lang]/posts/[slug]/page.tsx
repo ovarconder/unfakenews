@@ -18,12 +18,13 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { lang: string; slug: string };
+  params: Promise<{ lang: string; slug: string }>;
 }): Promise<Metadata> {
-  const locale = getLocale(params.lang);
+  const { lang, slug } = await params;
+  const locale = getLocale(lang);
   
   try {
-    const post = await getPostBySlug(params.slug, locale);
+    const post = await getPostBySlug(slug, locale);
 
     if (!post) {
       return {
@@ -32,7 +33,7 @@ export async function generateMetadata({
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const currentUrl = `${baseUrl}/${locale}/posts/${params.slug}`;
+    const currentUrl = `${baseUrl}/${locale}/posts/${slug}`;
 
     // Ensure image URL is absolute
     const imageUrl = post.image.startsWith("http") 
@@ -42,9 +43,9 @@ export async function generateMetadata({
     // Generate hreflang tags for all supported languages
     const languages: Record<string, string> = {};
     locales.forEach((lang) => {
-      languages[lang] = `${baseUrl}/${lang}/posts/${params.slug}`;
+      languages[lang] = `${baseUrl}/${lang}/posts/${slug}`;
     });
-    languages["x-default"] = `${baseUrl}/en/posts/${params.slug}`;
+    languages["x-default"] = `${baseUrl}/en/posts/${slug}`;
 
     return {
       title: post.translation.seoTitle,
@@ -113,18 +114,19 @@ export async function generateMetadata({
 export default async function PostPage({
   params,
 }: {
-  params: { lang: string; slug: string };
+  params: Promise<{ lang: string; slug: string }>;
 }) {
-  const locale = getLocale(params.lang);
+  const { lang, slug } = await params;
+  const locale = getLocale(lang);
 
   try {
-    const post = await getPostBySlug(params.slug, locale);
+    const post = await getPostBySlug(slug, locale);
 
     if (!post) {
       notFound();
     }
 
-    return <PostContent post={post} locale={locale} slug={params.slug} />;
+    return <PostContent post={post} locale={locale} slug={slug} />;
   } catch (error) {
     console.error("Error loading post:", error);
     notFound();
