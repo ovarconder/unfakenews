@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Save, Loader2, ImagePlus } from "lucide-react";
+import { ImageUploader } from "@/components/admin/image-uploader";
 
 export default function AdminCreatePost() {
   const router = useRouter();
@@ -151,54 +152,62 @@ export default function AdminCreatePost() {
 
         {/* รูปภาพ */}
         <Card className="p-6">
-          <label className="block text-sm font-medium mb-2">
+          <label className="block text-sm font-medium mb-4">
             <ImagePlus className="inline h-4 w-4 mr-1" />
             รูปภาพประกอบ
           </label>
-          <Input
-            value={formData.image}
-            onChange={(e) => handleImageUrlChange(e.target.value)}
-            placeholder="https://images.unsplash.com/photo-..."
-            required
-            type="url"
-          />
-          <div className="mt-4 space-y-2">
-            <p className="text-xs text-muted-foreground">
-              📸 แนะนำ: ใช้ Unsplash, Cloudinary หรือ Supabase Storage
-            </p>
-            <div className="flex gap-2 text-xs">
-              <a 
-                href="https://unsplash.com" 
-                target="_blank" 
-                className="text-blue-600 hover:underline"
-              >
-                → Unsplash (ฟรี)
-              </a>
-              <a 
-                href="https://cloudinary.com" 
-                target="_blank" 
-                className="text-blue-600 hover:underline"
-              >
-                → Cloudinary
-              </a>
-              <a 
-                href="#supabase-storage" 
-                className="text-blue-600 hover:underline"
-              >
-                → Supabase Storage
-              </a>
+
+          {/* Supabase Image Uploader */}
+          <div className="mb-4">
+            <h3 className="text-sm font-medium mb-2">🚀 อัพโหลดจากเครื่อง (Supabase)</h3>
+            <ImageUploader
+              onUpload={handleImageUrlChange}
+              currentImage={formData.image}
+              label="เลือกรูปภาพจากเครื่อง"
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">หรือ</span>
             </div>
           </div>
-          {imagePreview && (
-            <div className="mt-4">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-full h-48 object-cover rounded-lg"
-                onError={() => setImagePreview("")}
-              />
+
+          {/* Manual URL Input */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">🔗 ใส่ URL รูปภาพ</h3>
+            <Input
+              value={formData.image}
+              onChange={(e) => handleImageUrlChange(e.target.value)}
+              placeholder="https://images.unsplash.com/photo-..."
+              type="url"
+            />
+            <div className="mt-2 space-y-2">
+              <p className="text-xs text-muted-foreground">
+                📸 แหล่งรูปภาพแนะนำ:
+              </p>
+              <div className="flex gap-2 text-xs">
+                <a 
+                  href="https://unsplash.com" 
+                  target="_blank" 
+                  className="text-blue-600 hover:underline"
+                >
+                  → Unsplash (ฟรี)
+                </a>
+                <a 
+                  href="https://cloudinary.com" 
+                  target="_blank" 
+                  className="text-blue-600 hover:underline"
+                >
+                  → Cloudinary
+                </a>
+              </div>
             </div>
-          )}
+          </div>
         </Card>
 
         {/* หมวดหมู่ */}
