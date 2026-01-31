@@ -4,8 +4,9 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
-export default function AuthError() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
@@ -155,5 +156,28 @@ export default function AuthError() {
         </motion.p>
       </motion.div>
     </div>
+  );
+}
+
+export default function AuthError() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 max-w-lg w-full">
+            <div className="mb-6 flex justify-center">
+              <div className="bg-red-100 rounded-full p-4">
+                <AlertCircle className="h-12 w-12 text-red-600" />
+              </div>
+            </div>
+            <div className="text-center">
+              <h1 className="text-3xl font-bold mb-3 text-gray-900">กำลังโหลด...</h1>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <AuthErrorContent />
+    </Suspense>
   );
 }
