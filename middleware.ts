@@ -5,6 +5,9 @@ import { locales, defaultLocale } from "@/lib/i18n";
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  // Debug logging (will appear in Vercel logs)
+  console.log('[Middleware] Path:', pathname);
+
   // Skip middleware for API routes and auth pages
   if (
     pathname.startsWith('/api') ||
@@ -13,8 +16,11 @@ export function middleware(request: NextRequest) {
     pathname === '/favicon.ico' ||
     /\.\w+$/.test(pathname) // files with extensions
   ) {
+    console.log('[Middleware] Skipping:', pathname);
     return NextResponse.next();
   }
+
+  console.log('[Middleware] Processing:', pathname);
 
   // Check if pathname already has a locale
   const pathnameHasLocale = locales.some(
