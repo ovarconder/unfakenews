@@ -5,9 +5,9 @@ import { locales, defaultLocale } from "@/lib/i18n";
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip NextAuth API routes
+  // Skip NextAuth API routes and auth pages - let them pass through
   if (pathname.startsWith("/api/auth") || pathname.startsWith("/auth")) {
-    return;
+    return NextResponse.next();
   }
 
   // Check if pathname already has a locale
@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
 
-  if (pathnameHasLocale) return;
+  if (pathnameHasLocale) return NextResponse.next();
 
   // Check for saved language preference in cookies
   const savedLocale = request.cookies.get("preferred-language")?.value;
