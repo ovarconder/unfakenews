@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
-import { translatePost, calculateReadTime } from "@/lib/gemini";
-import { primaryLanguages } from "@/lib/i18n";
+import { calculateReadTime } from "@/lib/gemini";
+import { requireRole } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication (ถ้ามี NextAuth)
-    // const session = await getServerSession();
-    // if (!session) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    // Check authentication and role
+    const user = await requireRole([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.EDITOR]);
 
     const body = await request.json();
     const { title, slug, excerpt, content, category, image, featured, lang } = body;
