@@ -7,14 +7,20 @@ import { Locale } from "@/lib/i18n";
 
 interface Article {
   id: string;
-  title: string;
-  excerpt: string;
+  slug: string;
+  translation: {
+    title: string;
+    excerpt: string;
+    readTime: string;
+  } | null;
   category: string;
-  author: string;
-  date: string;
-  readTime: string;
+  author: {
+    name: string | null;
+    email: string;
+  };
   image: string;
   featured?: boolean;
+  createdAt: Date;
 }
 
 interface ArticleCardProps {
@@ -28,6 +34,20 @@ export function ArticleCard({
   locale,
   variant = "default",
 }: ArticleCardProps) {
+  // Format date
+  const formattedDate = new Date(article.createdAt).toLocaleDateString(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+  // Handle missing translation
+  if (!article.translation) {
+    return null;
+  }
+
+  const { title, excerpt, readTime } = article.translation;
+  const authorName = article.author.name || article.author.email;
   if (variant === "hero") {
     return (
       <motion.div
@@ -35,12 +55,12 @@ export function ArticleCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Link href={`/${locale}/article/${article.id}`} className="group">
+        <Link href={`/${locale}/posts/${article.slug}`} className="group">
           <div className="relative h-[500px] overflow-hidden rounded-lg">
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
             <img
               src={article.image}
-              alt={article.title}
+              alt={title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute bottom-0 left-0 right-0 p-8 z-20 text-white">
@@ -48,19 +68,19 @@ export function ArticleCard({
                 {article.category}
               </span>
               <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-                {article.title}
+                {title}
               </h1>
               <p className="text-lg text-gray-200 mb-4 line-clamp-2">
-                {article.excerpt}
+                {excerpt}
               </p>
               <div className="flex items-center gap-4 text-sm text-gray-300">
-                <span>{article.author}</span>
+                <span>{authorName}</span>
                 <span>•</span>
-                <span>{article.date}</span>
+                <span>{formattedDate}</span>
                 <span>•</span>
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <span>{article.readTime}</span>
+                  <span>{readTime}</span>
                 </div>
               </div>
             </div>
@@ -78,13 +98,13 @@ export function ArticleCard({
         transition={{ duration: 0.5 }}
       >
         <Link
-          href={`/${locale}/article/${article.id}`}
+          href={`/${locale}/posts/${article.slug}`}
           className="group flex gap-4 items-start"
         >
           <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded">
             <img
               src={article.image}
-              alt={article.title}
+              alt={title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           </div>
@@ -93,9 +113,9 @@ export function ArticleCard({
               {article.category}
             </span>
             <h3 className="font-semibold text-sm mt-1 line-clamp-2 group-hover:text-primary transition-colors">
-              {article.title}
+              {title}
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">{article.date}</p>
+            <p className="text-xs text-muted-foreground mt-1">{formattedDate}</p>
           </div>
         </Link>
       </motion.div>
@@ -108,11 +128,11 @@ export function ArticleCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Link href={`/${locale}/article/${article.id}`} className="group">
+      <Link href={`/${locale}/posts/${article.slug}`} className="group">
         <div className="overflow-hidden rounded-lg mb-4">
           <img
             src={article.image}
-            alt={article.title}
+            alt={title}
             className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-700"
           />
         </div>
@@ -120,19 +140,19 @@ export function ArticleCard({
           {article.category}
         </span>
         <h2 className="text-2xl font-bold mt-2 mb-3 leading-tight group-hover:text-primary transition-colors">
-          {article.title}
+          {title}
         </h2>
         <p className="text-muted-foreground mb-4 line-clamp-3">
-          {article.excerpt}
+          {excerpt}
         </p>
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <span>{article.author}</span>
+          <span>{authorName}</span>
           <span>•</span>
-          <span>{article.date}</span>
+          <span>{formattedDate}</span>
           <span>•</span>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{article.readTime}</span>
+            <span>{readTime}</span>
           </div>
         </div>
       </Link>
