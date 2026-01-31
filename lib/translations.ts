@@ -257,6 +257,38 @@ const translations: Record<Locale, any> = {
       editPost: "게시물 편집",
     },
   },
+  km: {
+    nav: {
+      home: "ទំព័រដើម",
+      politics: "នយោបាយ",
+      business: "ពាណិជ្ជកម្ម",
+      technology: "បច្ចេកវិទ្យា",
+      culture: "វប្បធម៌",
+      sports: "កីឡា",
+    },
+    common: {
+      readMore: "អានបន្ថែម",
+      trending: "និន្នាការ",
+      featured: "លេចធ្លោ",
+      latestNews: "ព័ត៌មានថ្មីៗ",
+      categories: "ប្រភេទ",
+    },
+    auth: {
+      signIn: "ចូល",
+      signOut: "ចាកចេញ",
+      email: "អ៊ីមែល",
+      password: "ពាក្យសម្ងាត់",
+    },
+    admin: {
+      dashboard: "ផ្ទាំងគ្រប់គ្រង",
+      posts: "ប្រកាស",
+      media: "មេឌៀ",
+      users: "អ្នកប្រើប្រាស់",
+      settings: "ការកំណត់",
+      createPost: "បង្កើតប្រកាស",
+      editPost: "កែប្រែប្រកាស",
+    },
+  },
   ru: {
     nav: {
       home: "Главная",
