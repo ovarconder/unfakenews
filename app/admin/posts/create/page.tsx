@@ -44,17 +44,30 @@ export default function AdminCreatePost() {
 
       const data = await response.json();
       
-      // แปลภาษาหลัก (Primary languages)
-      await fetch("/api/admin/translate-post", {
+      // แปลภาษาหลัก (Primary languages) - แปลทั้งบทความ
+      const primaryPromise = fetch("/api/admin/translate-post", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           postId: data.id,
-          targetLanguages: "primary", // แปลภาษาหลัก 10 ภาษา
+          targetLanguages: "primary", // แปลภาษาหลัก 10 ภาษา (ทั้งบทความ)
         }),
       });
 
-      alert("✅ สร้างบทความสำเร็จ! กำลังแปลภาษา...");
+      // แปลภาษารอง (Secondary languages) - แปลเฉพาะ metadata
+      const secondaryPromise = fetch("/api/admin/translate-post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId: data.id,
+          targetLanguages: "secondary", // แปลภาษารอง 5 ภาษา (เฉพาะ title, excerpt, SEO)
+        }),
+      });
+
+      // รอให้ทั้ง 2 process เสร็จ
+      await Promise.all([primaryPromise, secondaryPromise]);
+
+      alert("✅ สร้างบทความสำเร็จ! แปลเป็น 15 ภาษาแล้ว");
       router.push("/admin/posts");
     } catch (error) {
       alert("❌ เกิดข้อผิดพลาด: " + (error instanceof Error ? error.message : "Unknown error"));
@@ -248,14 +261,28 @@ export default function AdminCreatePost() {
         </div>
 
         {loading && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              ⏳ ระบบกำลังสร้างบทความและแปลเป็น 10 ภาษาหลัก...
-              <br />
-              <span className="text-xs">
-                (Thai, English, Chinese, Japanese, Korean, Malay, Indonesian, Vietnamese, Filipino, Spanish)
-              </span>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+            <p className="text-sm text-blue-800 font-medium">
+              ⏳ ระบบกำลังสร้างบทความและแปลภาษาอัตโนมัติ...
             </p>
+            <div className="text-xs text-blue-700 space-y-2">
+              <div>
+                <strong>✅ ภาษาภูมิภาค (10 ภาษา):</strong> แปลทั้งบทความเต็ม → โหลดไว
+                <div className="ml-4 mt-1 space-y-1">
+                  <div>🇹🇭 Thai • 🇬🇧 English • 🇯🇵 Japanese • 🇰🇷 Korean • 🇨🇳 Chinese</div>
+                  <div>🇰🇭 Khmer • 🇲🇾 Malay • 🇮🇩 Indonesian • 🇻🇳 Vietnamese • 🇵🇭 Filipino</div>
+                </div>
+              </div>
+              <div>
+                <strong>📝 ภาษาสากล (6 ภาษา):</strong> แปลเฉพาะ Title, Excerpt, SEO
+                <div className="ml-4 mt-1">
+                  🇪🇸 Spanish • 🇫🇷 French • 🇩🇪 German • 🇷🇺 Russian • 🇵🇹 Portuguese • 🇸🇦 Arabic
+                </div>
+              </div>
+              <div className="mt-2 text-blue-600">
+                💡 ภาษาสากลจะแปลเนื้อหาเต็มเมื่อมีผู้อ่านครั้งแรก
+              </div>
+            </div>
           </div>
         )}
       </form>

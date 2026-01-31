@@ -71,7 +71,7 @@ export async function getPostBySlug(
         throw new Error("No default translation found for this post");
       }
 
-      // Translate using Gemini
+      // Translate using Gemini (full translation)
       const translationInput: TranslationInput = {
         title: defaultTranslation.title,
         content: defaultTranslation.content,
@@ -91,6 +91,43 @@ export async function getPostBySlug(
           excerpt: geminiResult.excerpt,
           seoTitle: geminiResult.seoTitle,
           seoDesc: geminiResult.seoDesc,
+          readTime,
+        },
+      });
+    } else if (!translation.content || translation.content.trim() === "") {
+      // Translation exists but content is empty (metadata-only translation)
+      // This happens for secondary languages - translate content on-demand
+      const defaultTranslation = await prisma.postTranslation.findFirst({
+        where: {
+          postId: post.id,
+          lang: { in: ["en", "th"] },
+        },
+      });
+
+      if (!defaultTranslation) {
+        throw new Error("No default translation found for this post");
+      }
+
+      // Translate only the content
+      const translationInput: TranslationInput = {
+        title: defaultTranslation.title,
+        content: defaultTranslation.content,
+        excerpt: defaultTranslation.excerpt,
+      };
+
+      const geminiResult = await translatePost(translationInput, lang);
+      const readTime = await calculateReadTime(geminiResult.content);
+
+      // Update the existing translation with full content
+      translation = await prisma.postTranslation.update({
+        where: {
+          postId_lang: {
+            postId: post.id,
+            lang,
+          },
+        },
+        data: {
+          content: geminiResult.content,
           readTime,
         },
       });

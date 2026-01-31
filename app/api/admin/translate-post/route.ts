@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { translatePost, calculateReadTime } from "@/lib/gemini";
-import { primaryLanguages, locales } from "@/lib/i18n";
+import { translatePost, translateMetadata, calculateReadTime } from "@/lib/gemini";
+import { primaryLanguages, secondaryLanguages, locales } from "@/lib/i18n";
 
 type Locale = typeof locales[number];
 
@@ -32,12 +32,17 @@ export async function POST(request: NextRequest) {
     const sourceTranslation = post.translations[0];
 
     // กำหนดภาษาที่จะแปล
-    const languagesToTranslate: Locale[] =
-      targetLanguages === "primary"
-        ? (primaryLanguages as Locale[])
-        : targetLanguages === "all"
-        ? (locales as unknown as Locale[])
-        : targetLanguages;
+    let languagesToTranslate: Locale[] = [];
+    
+    if (targetLanguages === "primary") {
+      languagesToTranslate = primaryLanguages as Locale[];
+    } else if (targetLanguages === "secondary") {
+      languagesToTranslate = secondaryLanguages as Locale[];
+    } else if (targetLanguages === "all") {
+      languagesToTranslate = locales as unknown as Locale[];
+    } else {
+      languagesToTranslate = targetLanguages;
+    }
 
     const results = [];
 
@@ -58,33 +63,63 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // แปลด้วย Gemini
-        const translated = await translatePost(
-          {
-            title: sourceTranslation.title,
-            content: sourceTranslation.content,
-            excerpt: sourceTranslation.excerpt,
-          },
-          lang
-        );
+        // Check if this is a secondary language
+        const isSecondaryLang = secondaryLanguages.includes(lang);
 
-        const readTime = await calculateReadTime(translated.content);
+        if (isSecondaryLang) {
+          // แปลเฉพาะ metadata (title, excerpt, SEO) สำหรับภาษารอง
+          const translated = await translateMetadata(
+            {
+              title: sourceTranslation.title,
+              excerpt: sourceTranslation.excerpt,
+            },
+            lang
+          );
 
-        // บันทึกลง database
-        await prisma.postTranslation.create({
-          data: {
-            postId: post.id,
-            lang,
-            title: translated.title,
-            content: translated.content,
-            excerpt: translated.excerpt,
-            seoTitle: translated.seoTitle,
-            seoDesc: translated.seoDesc,
-            readTime,
-          },
-        });
+          // บันทึกลง database โดยเก็บ content เป็น placeholder
+          await prisma.postTranslation.create({
+            data: {
+              postId: post.id,
+              lang,
+              title: translated.title,
+              content: "", // Empty content - will be translated on-demand
+              excerpt: translated.excerpt,
+              seoTitle: translated.seoTitle,
+              seoDesc: translated.seoDesc,
+              readTime: sourceTranslation.readTime, // Use source readTime as estimate
+            },
+          });
 
-        results.push({ lang, status: "success" });
+          results.push({ lang, status: "success", type: "metadata-only" });
+        } else {
+          // แปลทั้งบทความสำหรับภาษาหลัก
+          const translated = await translatePost(
+            {
+              title: sourceTranslation.title,
+              content: sourceTranslation.content,
+              excerpt: sourceTranslation.excerpt,
+            },
+            lang
+          );
+
+          const readTime = await calculateReadTime(translated.content);
+
+          // บันทึกลง database
+          await prisma.postTranslation.create({
+            data: {
+              postId: post.id,
+              lang,
+              title: translated.title,
+              content: translated.content,
+              excerpt: translated.excerpt,
+              seoTitle: translated.seoTitle,
+              seoDesc: translated.seoDesc,
+              readTime,
+            },
+          });
+
+          results.push({ lang, status: "success", type: "full" });
+        }
 
         // Delay เพื่อไม่ให้เกิน rate limit
         await new Promise((resolve) => setTimeout(resolve, 1000));

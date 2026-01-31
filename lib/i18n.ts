@@ -4,6 +4,7 @@ export const locales = [
   "zh", // Chinese
   "ja", // Japanese
   "ko", // Korean
+  "km", // Khmer (Cambodian)
   "ms", // Malay
   "id", // Indonesian
   "vi", // Vietnamese
@@ -26,6 +27,7 @@ export const languageNames: Record<Locale, { native: string; english: string; fl
   zh: { native: "中文", english: "Chinese", flag: "🇨🇳" },
   ja: { native: "日本語", english: "Japanese", flag: "🇯🇵" },
   ko: { native: "한국어", english: "Korean", flag: "🇰🇷" },
+  km: { native: "ខ្មែរ", english: "Khmer", flag: "🇰🇭" },
   ms: { native: "Bahasa Melayu", english: "Malay", flag: "🇲🇾" },
   id: { native: "Bahasa Indonesia", english: "Indonesian", flag: "🇮🇩" },
   vi: { native: "Tiếng Việt", english: "Vietnamese", flag: "🇻🇳" },
@@ -38,22 +40,31 @@ export const languageNames: Record<Locale, { native: string; english: string; fl
   ar: { native: "العربية", english: "Arabic", flag: "🇸🇦" },
 };
 
-// Primary languages for SEO (pre-translate these)
+// Primary languages (full translation immediately)
+// ภาษาภูมิภาคเอเชียอาเซียน - แปลเต็มทันทีเพื่อโหลดไว
 export const primaryLanguages: Locale[] = [
-  "th",  // Thai
-  "en",  // English
-  "zh",  // Chinese
-  "ja",  // Japanese
-  "ko",  // Korean
-  "ms",  // Malay
-  "id",  // Indonesian
-  "vi",  // Vietnamese
-  "tl",  // Filipino
-  "es",  // Spanish
+  "th",  // Thai - ภาษาหลัก
+  "en",  // English - สากล, SEO
+  "ja",  // Japanese - ญี่ปุ่น
+  "ko",  // Korean - เกาหลี
+  "zh",  // Chinese - จีน
+  "km",  // Khmer - เขมร
+  "ms",  // Malay - มาเลเซีย
+  "id",  // Indonesian - อินโดนีเซีย
+  "vi",  // Vietnamese - เวียดนาม
+  "tl",  // Filipino - ฟิลิปปินส์
 ];
 
-// Secondary languages (on-demand translation)
-export const secondaryLanguages: Locale[] = ["fr", "de", "ru", "pt", "ar"];
+// Secondary languages (metadata immediately, content on-demand)
+// ภาษาสากลนอกภูมิภาค - แปล title, excerpt, SEO ทันที, content เมื่อมีผู้อ่าน
+export const secondaryLanguages: Locale[] = [
+  "es",  // Spanish
+  "fr",  // French
+  "de",  // German
+  "ru",  // Russian
+  "pt",  // Portuguese
+  "ar",  // Arabic
+];
 
 export function getLocale(locale?: string): Locale {
   if (locale && locales.includes(locale as Locale)) {

@@ -36,15 +36,32 @@ export interface TranslationInput {
   excerpt: string;
 }
 
+export interface PartialTranslationResult {
+  title: string;
+  excerpt: string;
+  seoTitle: string;
+  seoDesc: string;
+}
+
+export interface PartialTranslationInput {
+  title: string;
+  excerpt: string;
+}
+
 const LANGUAGE_NAMES: Record<string, string> = {
   th: "Thai (ไทย)",
   en: "English",
   zh: "Chinese (中文)",
   ja: "Japanese (日本語)",
+  ko: "Korean (한국어)",
+  km: "Khmer (ខ្មែរ)",
+  ms: "Malay (Bahasa Melayu)",
+  id: "Indonesian (Bahasa Indonesia)",
+  vi: "Vietnamese (Tiếng Việt)",
+  tl: "Filipino",
   es: "Spanish (Español)",
   fr: "French (Français)",
   de: "German (Deutsch)",
-  ko: "Korean (한국어)",
   ru: "Russian (Русский)",
   pt: "Portuguese (Português)",
   ar: "Arabic (العربية)",
@@ -105,6 +122,73 @@ Remember:
   } catch (error) {
     console.error("Translation error:", error);
     throw new Error(`Failed to translate content: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
+}
+
+/**
+ * Translate only metadata (title, excerpt, SEO) for secondary languages
+ * This allows articles to appear in listings without translating full content
+ */
+export async function translateMetadata(
+  input: PartialTranslationInput,
+  targetLang: string
+): Promise<PartialTranslationResult> {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash-exp",
+    systemInstruction: ELITE_EDITOR_SYSTEM_PROMPT,
+  });
+
+  const languageName = LANGUAGE_NAMES[targetLang] || targetLang;
+
+  const prompt = `Translate the following article metadata to ${languageName} with the highest editorial standards. Return ONLY valid JSON, no additional text or markdown formatting.
+
+Article metadata to translate:
+Title: ${input.title}
+Excerpt: ${input.excerpt}
+
+Output JSON structure:
+{
+  "title": "Translated title",
+  "excerpt": "Brief engaging summary (150-200 characters)",
+  "seoTitle": "SEO-optimized title (50-60 characters)",
+  "seoDesc": "SEO meta description (150-160 characters)"
+}
+
+Remember:
+- Maintain sophisticated, formal tone
+- Be objective and precise
+- Create compelling SEO metadata
+- Output valid JSON only`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+
+    // Clean up response - remove markdown code blocks if present
+    let jsonText = text.trim();
+    if (jsonText.startsWith("```json")) {
+      jsonText = jsonText.replace(/```json\n?/g, "").replace(/```\n?/g, "");
+    } else if (jsonText.startsWith("```")) {
+      jsonText = jsonText.replace(/```\n?/g, "");
+    }
+
+    const translation: PartialTranslationResult = JSON.parse(jsonText);
+
+    // Validate the response has all required fields
+    if (
+      !translation.title ||
+      !translation.excerpt ||
+      !translation.seoTitle ||
+      !translation.seoDesc
+    ) {
+      throw new Error("Translation response missing required fields");
+    }
+
+    return translation;
+  } catch (error) {
+    console.error("Metadata translation error:", error);
+    throw new Error(`Failed to translate metadata: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
