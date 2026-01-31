@@ -1,11 +1,12 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Share2, Bookmark, Facebook, Twitter, Linkedin } from "lucide-react";
+import { Clock, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Locale } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { PostWithTranslation } from "@/lib/db/posts";
+import { SocialShare } from "@/components/social-share";
 
 interface PostContentProps {
   post: PostWithTranslation;
@@ -19,6 +20,11 @@ export function PostContent({ post, locale, slug }: PostContentProps) {
     month: "long",
     day: "numeric",
   });
+
+  // Track article view with Google Analytics
+  useEffect(() => {
+    gaEvent.viewArticle(post.id, post.translation.title, post.category, locale);
+  }, [post.id, post.translation.title, post.category, locale]);
 
   return (
     <div className="py-12">
@@ -67,9 +73,13 @@ export function PostContent({ post, locale, slug }: PostContentProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon">
-                  <Share2 className="h-4 w-4" />
-                </Button>
+                <SocialShare 
+                  title={post.translation.title}
+                  excerpt={post.translation.excerpt}
+                  locale={locale}
+                  articleId={post.id}
+                  compact
+                />
                 <Button variant="outline" size="icon">
                   <Bookmark className="h-4 w-4" />
                 </Button>
@@ -112,45 +122,12 @@ export function PostContent({ post, locale, slug }: PostContentProps) {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="mt-12 pt-8 border-t"
         >
-          <h3 className="font-semibold mb-4">Share this article</h3>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                window.open(
-                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
-                  "_blank"
-                );
-              }}
-            >
-              <Facebook className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                window.open(
-                  `https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(post.translation.title)}`,
-                  "_blank"
-                );
-              }}
-            >
-              <Twitter className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                window.open(
-                  `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`,
-                  "_blank"
-                );
-              }}
-            >
-              <Linkedin className="h-4 w-4" />
-            </Button>
-          </div>
+          <SocialShare 
+            title={post.translation.title}
+            excerpt={post.translation.excerpt}
+            locale={locale}
+            articleId={post.id}
+          />
         </motion.div>
       </article>
     </div>

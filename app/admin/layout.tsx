@@ -1,14 +1,11 @@
-import { AdminSidebar } from "@/components/admin/sidebar";
+"use client";
+
+import { SessionProvider } from "next-auth/react";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="flex">
-      <AdminSidebar />
-      <main className="flex-1 p-8 bg-white min-h-screen">{children}</main>
-    </div>
-  );
+  return <SessionProvider>{children}</SessionProvider>;
 }

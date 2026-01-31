@@ -12,14 +12,30 @@ export function middleware(request: NextRequest) {
 
   if (pathnameHasLocale) return;
 
-  // Redirect to default locale if no locale in pathname
+  // Check for saved language preference in cookies
+  const savedLocale = request.cookies.get("preferred-language")?.value;
+  const preferredLocale = 
+    savedLocale && locales.includes(savedLocale as any) 
+      ? savedLocale 
+      : defaultLocale;
+
+  // Redirect to preferred locale if no locale in pathname
   if (pathname === "/") {
-    return NextResponse.redirect(new URL(`/${defaultLocale}`, request.url));
+    const response = NextResponse.redirect(
+      new URL(`/${preferredLocale}`, request.url)
+    );
+    // Save preference in cookie for server-side access
+    if (savedLocale) {
+      response.cookies.set("preferred-language", savedLocale, {
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+      });
+    }
+    return response;
   }
 
-  // For other paths without locale, add default locale
+  // For other paths without locale, add preferred locale
   return NextResponse.redirect(
-    new URL(`/${defaultLocale}${pathname}`, request.url)
+    new URL(`/${preferredLocale}${pathname}`, request.url)
   );
 }
 

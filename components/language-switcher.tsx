@@ -2,10 +2,11 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
-import { Check, ChevronDown, Languages } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Locale, locales, languageNames, isRTL } from "@/lib/i18n";
+import { Locale, locales, languageNames, isRTL, saveLanguagePreference } from "@/lib/i18n";
+import { gaEvent } from "@/components/google-analytics";
 
 interface LanguageSwitcherProps {
   currentLang: Locale;
@@ -18,6 +19,9 @@ export function LanguageSwitcher({ currentLang, currentSlug }: LanguageSwitcherP
   const pathname = usePathname();
 
   const handleLanguageChange = (newLang: Locale) => {
+    // Save language preference
+    saveLanguagePreference(newLang);
+    
     if (currentSlug) {
       router.push(`/${newLang}/posts/${currentSlug}`);
     } else {
@@ -35,10 +39,10 @@ export function LanguageSwitcher({ currentLang, currentSlug }: LanguageSwitcherP
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 min-w-[140px] justify-between"
+        className="flex items-center gap-2 min-w-[160px] justify-between"
       >
         <div className="flex items-center gap-2">
-          <Languages className="h-4 w-4" />
+          <span className="text-lg">{languageNames[currentLang].flag}</span>
           <span className="font-medium">{languageNames[currentLang].native}</span>
         </div>
         <ChevronDown
@@ -55,20 +59,20 @@ export function LanguageSwitcher({ currentLang, currentSlug }: LanguageSwitcherP
               onClick={() => setIsOpen(false)}
             />
 
-            {/* Dropdown */}
+            {/* Dropdown - แสดงทุกภาษา */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute right-0 mt-2 w-56 bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
+              className="absolute right-0 mt-2 w-64 bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
             >
               <div className="p-2 border-b bg-muted/50">
                 <p className="text-xs font-semibold text-muted-foreground px-2 py-1">
-                  Select Language
+                  เลือกภาษา • Select Language
                 </p>
               </div>
-              <div className="max-h-80 overflow-y-auto p-2">
+              <div className="max-h-[400px] overflow-y-auto p-2">
                 {locales.map((lang) => (
                   <button
                     key={lang}
@@ -80,12 +84,15 @@ export function LanguageSwitcher({ currentLang, currentSlug }: LanguageSwitcherP
                     } ${isRTL(lang) ? "flex-row-reverse" : ""}`}
                   >
                     <div className={`flex items-center gap-3 ${isRTL(lang) ? "flex-row-reverse" : ""}`}>
-                      <span className="font-medium text-sm">
-                        {languageNames[lang].native}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {languageNames[lang].english}
-                      </span>
+                      <span className="text-lg">{languageNames[lang].flag}</span>
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium text-sm">
+                          {languageNames[lang].native}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {languageNames[lang].english}
+                        </span>
+                      </div>
                     </div>
                     {currentLang === lang && (
                       <Check className="h-4 w-4" />
@@ -101,30 +108,34 @@ export function LanguageSwitcher({ currentLang, currentSlug }: LanguageSwitcherP
   );
 }
 
-// Compact version for navbar
+// Compact version for navbar - แสดงทุกภาษา
 export function LanguageSwitcherCompact({ currentLang }: { currentLang: Locale }) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   const handleLanguageChange = (newLang: Locale) => {
+    // Track language change with Google Analytics
+    const currentLocale = pathname.split("/")[1] as Locale;
+    gaEvent.changeLanguage(currentLocale, newLang);
+    
+    // Save language preference
+    saveLanguagePreference(newLang);
+    
     const segments = pathname.split("/").filter(Boolean);
     segments[0] = newLang;
     router.push(`/${segments.join("/")}`);
     setIsOpen(false);
   };
 
-  // Show only selected languages in compact mode
-  const compactLanguages: Locale[] = ["th", "en", "zh", "ja", "es"];
-
   return (
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-3 py-1.5 rounded-md hover:bg-muted transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-muted transition-colors"
       >
-        <Languages className="h-4 w-4" />
-        <span className="text-sm font-medium uppercase">{currentLang}</span>
+        <span className="text-base">{languageNames[currentLang].flag}</span>
+        <span className="text-sm font-medium">{languageNames[currentLang].native}</span>
       </button>
 
       <AnimatePresence>
@@ -140,10 +151,15 @@ export function LanguageSwitcherCompact({ currentLang }: { currentLang: Locale }
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden min-w-[200px]"
+              className="absolute right-0 mt-2 bg-background border rounded-lg shadow-lg z-50 overflow-hidden min-w-[240px]"
             >
-              <div className="p-2">
-                {compactLanguages.map((lang) => (
+              <div className="p-2 border-b bg-muted/50">
+                <p className="text-xs font-semibold text-muted-foreground px-2 py-1">
+                  เลือกภาษา • Select Language
+                </p>
+              </div>
+              <div className="max-h-[400px] overflow-y-auto p-2">
+                {locales.map((lang) => (
                   <button
                     key={lang}
                     onClick={() => handleLanguageChange(lang)}
@@ -153,21 +169,13 @@ export function LanguageSwitcherCompact({ currentLang }: { currentLang: Locale }
                         : "hover:bg-muted"
                     }`}
                   >
-                    <span>{languageNames[lang].native}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{languageNames[lang].flag}</span>
+                      <span>{languageNames[lang].native}</span>
+                    </div>
                     {currentLang === lang && <Check className="h-4 w-4" />}
                   </button>
                 ))}
-                <div className="border-t mt-2 pt-2">
-                  <button
-                    onClick={() => {
-                      setIsOpen(false);
-                      // Could open a modal with all languages
-                    }}
-                    className="w-full px-3 py-2 text-sm text-muted-foreground hover:bg-muted rounded-md transition-colors text-left"
-                  >
-                    More languages...
-                  </button>
-                </div>
               </div>
             </motion.div>
           </>

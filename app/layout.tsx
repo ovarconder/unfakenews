@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Thai, Noto_Serif, Inter } from "next/font/google";
 import "./globals.css";
+import { GoogleAnalytics } from "@/components/google-analytics";
+import { CookieConsent } from "@/components/cookie-consent";
 
 const notoSansThai = Noto_Sans_Thai({
   subsets: ["thai", "latin"],
@@ -30,10 +32,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || "";
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${notoSansThai.variable} ${notoSerif.variable} ${inter.variable} antialiased`}>
+        {/* Google Analytics */}
+        {gaId && <GoogleAnalytics gaId={gaId} />}
+        
         {children}
+        
+        {/* Cookie Consent Banner */}
+        <CookieConsent />
       </body>
     </html>
   );

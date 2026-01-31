@@ -1,90 +1,46 @@
-import { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { UserRole } from "@prisma/client";
 
-export enum UserRole {
-  SUPER_ADMIN = "SUPER_ADMIN",
-  EDITOR = "EDITOR",
-  AUTHOR = "AUTHOR",
+export async function getCurrentUser() {
+  const session = await getServerSession(authOptions);
+  return session?.user;
 }
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
+export async function requireAuth() {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+  return user;
 }
 
-// Mock users for development
-const mockUsers: User[] = [
-  {
-    id: "1",
-    email: "admin@unfakenews.com",
-    name: "Super Admin",
-    role: UserRole.SUPER_ADMIN,
-  },
-  {
-    id: "2",
-    email: "editor@unfakenews.com",
-    name: "Editor",
-    role: UserRole.EDITOR,
-  },
-  {
-    id: "3",
-    email: "author@unfakenews.com",
-    name: "Author",
-    role: UserRole.AUTHOR,
-  },
-];
+export async function requireRole(role: UserRole | UserRole[]) {
+  const user = await requireAuth();
+  const allowedRoles = Array.isArray(role) ? role : [role];
+  
+  if (!allowedRoles.includes(user.role)) {
+    throw new Error("Insufficient permissions");
+  }
+  
+  return user;
+}
 
-export const authOptions: NextAuthOptions = {
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+export function hasRole(userRole: UserRole, requiredRole: UserRole | UserRole[]): boolean {
+  const required = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+  return required.includes(userRole);
+}
 
-        // Mock authentication - in production, verify against database
-        const user = mockUsers.find((u) => u.email === credentials.email);
+export function isAdmin(userRole: UserRole): boolean {
+  return userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+}
 
-        if (user && credentials.password === "password123") {
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
-        }
-
-        return null;
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = (user as User).role;
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).role = token.role;
-        (session.user as any).id = token.id;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/auth/signin",
-  },
-  session: {
-    strategy: "jwt",
-  },
-};
+export function canEditPost(userRole: UserRole, postAuthorId: string, userId: string): boolean {
+  // Super Admin และ Admin แก้ไขได้ทุกบทความ
+  if (isAdmin(userRole)) return true;
+  
+  // Editor แก้ไขได้เฉพาะบทความตัวเอง
+  if (userRole === "EDITOR" && postAuthorId === userId) return true;
+  
+  return false;
+}
