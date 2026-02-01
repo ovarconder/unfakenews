@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { UserRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -23,20 +24,45 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Missing credentials');
           throw new Error("Email and password required");
         }
 
-        // ในการใช้งานจริง ควรใช้ bcrypt เพื่อ hash password
-        // const bcrypt = require("bcryptjs");
-        // const isValid = await bcrypt.compare(credentials.password, user.password);
-        
+        console.log('🔍 Attempting login:', credentials.email);
+
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
 
-        if (!user || user.password !== credentials.password) {
+        if (!user) {
+          console.log('❌ User not found:', credentials.email);
           throw new Error("Invalid credentials");
         }
+
+        console.log('✅ User found:', user.email, 'Role:', user.role);
+
+        if (!user.password) {
+          console.log('❌ User has no password');
+          throw new Error("Invalid credentials");
+        }
+
+        console.log('🔐 Password hash exists, length:', user.password.length);
+        console.log('🔐 Hash preview:', user.password.substring(0, 20) + '...');
+
+        // ใช้ bcrypt เพื่อเปรียบเทียบ password
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
+
+        console.log('🔐 bcrypt.compare() result:', isValid);
+
+        if (!isValid) {
+          console.log('❌ Password mismatch');
+          throw new Error("Invalid credentials");
+        }
+
+        console.log('✅ Authentication successful!');
 
         return {
           id: user.id,
