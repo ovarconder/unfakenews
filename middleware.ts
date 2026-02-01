@@ -5,10 +5,11 @@ import { locales, defaultLocale } from "@/lib/i18n";
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip middleware for API routes and auth pages - CRITICAL!
+  // Skip middleware for API routes, auth pages, and admin routes - CRITICAL!
   if (
     pathname.startsWith('/api') ||
     pathname.startsWith('/auth') ||
+    pathname.startsWith('/admin') || // ← เพิ่มบรรทัดนี้
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico' ||
     /\.\w+$/.test(pathname) // files with extensions
@@ -54,11 +55,13 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - api (ALL API routes - very important!)
+     * - api (ALL API routes)
+     * - admin (Admin dashboard)
+     * - auth (Authentication pages)
      * - _next/static (static files)
      * - _next/image (image optimization)
      * - favicon.ico
      */
-    '/((?!api/|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api/|admin|auth|_next/static|_next/image|favicon.ico).*)',
   ],
 };
